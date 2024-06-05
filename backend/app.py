@@ -9,9 +9,7 @@ app = Flask(__name__)
 CORS(app)
 
 # Configure your AWS settings
-AWS_ACCESS_KEY_ID = 'AKIATCKAQK3UPIC5WPIY'
-AWS_SECRET_ACCESS_KEY = 'jAFQeVAkzxjA403T1GamIDg/E0eQpQItVaSMvuEC'
-S3_BUCKET_NAME = 'visualize-3d-object-vr-dev'
+
 
 s3_client = boto3.client(
     's3',
