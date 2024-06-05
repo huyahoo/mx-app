@@ -8,15 +8,7 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__)
 CORS(app)
 
-# Configure your AWS settings
 
-
-s3_client = boto3.client(
-    's3',
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-    region_name='ap-northeast-3'
-)
 
 @app.route('/', methods=['GET'])
 def index():
