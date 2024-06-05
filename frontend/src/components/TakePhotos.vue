@@ -8,19 +8,20 @@
           <button class="btn btn-secondary mt-2" @click="takePhoto">Capture Photo</button>
           <div class="mt-3">
             <h6>Captured Photos:</h6>
-            <div v-for="(src, index) in previews" :key="index" class="preview">
+            <div v-for="(src, index) in previews" :key="index" class="preview-container">
               <img :src="src" alt="preview" class="img-thumbnail">
+              <button class="btn btn-danger btn-sm remove-btn" @click="removePhoto(index)">x</button>
             </div>
           </div>
         </div>
-        <button class="btn btn-primary mt-3 w-100" @click="processPhotos">Process</button>
+        <button class="btn btn-primary mt-3 w-100" @click="uploadPhotos">Process</button>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { nextTick } from 'vue';
+import axios from 'axios';
 
 export default {
   data() {
@@ -48,7 +49,7 @@ export default {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         this.cameraStream = stream;
-        await nextTick();
+        await this.$nextTick();
         this.$refs.camera.srcObject = stream;
       } catch (err) {
         console.error("Error accessing camera: ", err);
@@ -64,15 +65,39 @@ export default {
       const imgData = canvas.toDataURL('image/png');
       this.previews.push(imgData);
     },
+    removePhoto(index) {
+      this.previews.splice(index, 1);
+    },
     closeCamera() {
       if (this.cameraStream) {
         this.cameraStream.getTracks().forEach(track => track.stop());
         this.cameraStream = null;
       }
     },
-    processPhotos() {
-      // Implement photo processing logic
-      console.log("Processing photos:", this.previews);
+    async uploadPhotos() {
+      const formData = new FormData();
+      this.previews.forEach((preview, index) => {
+        const byteString = atob(preview.split(',')[1]);
+        const mimeString = preview.split(',')[0].split(':')[1].split(';')[0];
+        const arrayBuffer = new ArrayBuffer(byteString.length);
+        const uint8Array = new Uint8Array(arrayBuffer);
+        for (let i = 0; i < byteString.length; i++) {
+          uint8Array[i] = byteString.charCodeAt(i);
+        }
+        const blob = new Blob([arrayBuffer], { type: mimeString });
+        formData.append('files', blob, `photo-${index}.png`);
+      });
+
+      try {
+        const response = await axios.post('http://localhost:5000/upload', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        console.log('Photos uploaded successfully:', response.data.file_urls);
+      } catch (error) {
+        console.error('Error uploading photos:', error);
+      }
     }
   }
 };
@@ -88,12 +113,32 @@ export default {
   border-radius: 10px;
 }
 .card-title {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: bold;
-  margin-bottom: 3rem;
 }
-.preview {
-  margin: 5px;
+.preview-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 10px;
+}
+.img-thumbnail {
+  max-width: 100px;
+  max-height: 100px;
+  margin-bottom: 5px;
+}
+.remove-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background-color: red;
+  border: none;
+  color: white;
+  font-size: 1rem;
+  line-height: 1rem;
+  padding: 0.2rem;
+  border-radius: 50%;
 }
 .camera-container {
   display: flex;
