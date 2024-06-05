@@ -5,8 +5,13 @@
         <h5 class="card-title">Model Views</h5>
         <div class="form-group">
           <label for="objects">Objects</label>
-          <select v-model="selectedObject" @change="loadModel" class="form-control">
+          <!-- <select v-model="selectedObject" @change="loadModel" class="form-control">
             <option v-for="object in objects" :key="object" :value="object">{{ object }}</option>
+          </select> -->
+          <select class="form-select" id="model" v-model="selectedObject">
+            <option>Wolf</option>
+            <option>CylinderEngine</option>
+            <!-- Add more options as needed -->
           </select>
         </div>
         <div class="model-viewer-container">
@@ -36,14 +41,18 @@
           <!-- <model-viewer camera-controls touch-action="pan-y" alt="A 3D model of a sphere" src="./2CylinderEngine.glb">
           </model-viewer> -->
         </div>
-        <button class="btn btn-primary mt-3 w-100" @click="downloadModel">Download</button>
-        <button class="btn btn-secondary mt-2 w-100" @click="useThreeJS">ThreeJS</button>
+        <button class="btn btn-primary mt-3 w-100" @click="downloadModel">
+          <i v-if="isLoading" class="fas fa-spinner fa-spin"></i>
+          <span v-else>Download</span>
+        </button>
+        <button class="btn btn-secondary mt-2 w-100" @click="useThreeJS">
+          <i v-if="isLoadingThreeJS" class="fas fa-spinner fa-spin"></i>
+          <span v-else>ThreeJS</span>
+        </button>
       </div>
     </div>
   </div>
 </template>
-
-<!-- <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script> -->
 
 <script>
 import axios from 'axios';
@@ -51,9 +60,11 @@ import axios from 'axios';
 export default {
   data() {
     return {
-      objects: ["a", "b"],
-      selectedObject: 'a',
-      modelSrc: '/Users/huyphung/Repositories/personal/mx-app/wolvic_3d_model.glb'
+      objects: ["Wolf", "CylinderEngine"],
+      selectedObject: 'Wolf',
+      modelSrc: '',
+      isLoading: false,
+      isLoadingThreeJS: false
     };
   },
   computed: {
@@ -91,14 +102,23 @@ export default {
         // this.modelSrc = response.data;
       }
     },
-    downloadModel() {
-      const link = document.createElement('a');
-      link.href = this.modelSrc;
-      link.download = this.selectedObject;
-      link.click();
+    async downloadModel() {
+      this.isLoading = true;
+      try {
+        // const link = document.createElement('a');
+        // link.href = this.modelSrc;
+        // link.download = this.selectedObject;
+        // link.click();
+      } catch (error) {
+        console.error('Error downloading model:', error);
+      } finally {
+        this.isLoading = false;
+      }
     },
     useThreeJS() {
+      this.isLoadingThreeJS = true;
       // Handle navigation to ThreeJS implementation screen
+      this.isLoadingThreeJS = false;
     }
   }
 };

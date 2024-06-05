@@ -1,18 +1,20 @@
 <template>
   <div class="container mt-3 mt-md-5">
-    <div class="card mx-auto" :class="cardClass">
+    <div class="card mx-auto w-100">
       <div class="card-body text-center">
         <h5 class="card-title">Upload Files</h5>
-        <input type="file" ref="fileInput" multiple @change="handleFileSelect" class="form-control">
-        <div v-for="(file, index) in selectedFiles" :key="index" class="preview-container">
-          <img v-if="file.type.startsWith('image/')" :src="file.preview" alt="preview" class="img-thumbnail">
+        <input type="file" multiple @change="handleFileSelect" class="form-control" />
+        <div v-for="(file, index) in files" :key="index" class="file-preview">
+          <img :src="file.url" class="img-thumbnail" />
+          <button @click="removeFile(index)" class="btn btn-danger btn-sm">
+            <i class="fas fa-times"></i>
+          </button>
           <p>{{ file.name }}</p>
-          <!-- <button class="btn btn-danger btn-sm remove-btn" @click="removeFile(index)">x</button> -->
-          <button type="button" class="btn-close remove-btn" aria-label="Close"></button>
         </div>
-        <button class="btn btn-primary mt-3 w-100" @click="uploadFiles">Process</button>
-        <!-- <button type="button" class="btn-close" aria-label="Close" @click="getPresignUrl">Get Image</button> -->
-
+        <button class="btn btn-primary mt-3 w-100" @click="processFiles" :disabled="isLoading">
+          <i v-if="isLoading" class="fas fa-spinner fa-spin"></i>
+          <span v-else>Process</span>
+        </button>
       </div>
     </div>
   </div>
@@ -24,101 +26,54 @@ import axios from 'axios';
 export default {
   data() {
     return {
-      selectedFiles: []
+      files: [],
+      isLoading: false
     };
-  },
-  computed: {
-    cardClass() {
-      return {
-        'w-100': true,
-        'w-md-50': true
-      };
-    }
   },
   methods: {
     handleFileSelect(event) {
-      const files = Array.from(event.target.files);
-      files.forEach(file => {
+      const selectedFiles = Array.from(event.target.files);
+      selectedFiles.forEach(file => {
         const reader = new FileReader();
-        reader.onload = (e) => {
-          file.preview = e.target.result;
-          this.selectedFiles.push(file);
+        reader.onload = e => {
+          this.files.push({ name: file.name, url: e.target.result, file });
         };
         reader.readAsDataURL(file);
       });
     },
     removeFile(index) {
-      this.selectedFiles.splice(index, 1);
+      this.files.splice(index, 1);
     },
-    async uploadFiles() {
-      const formData = new FormData();
-      this.selectedFiles.forEach(file => {
-        formData.append('files', file);
-      });
-
+    async processFiles() {
+      this.isLoading = true;
       try {
-        const response = await axios.post('http://localhost:5000/upload', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        });
-        console.log('Files uploaded successfully:', response.status);
+        const formData = new FormData();
+        this.files.forEach(file => formData.append('files', file.file));
+        await axios.post('http://localhost:5000/upload', formData);
+        // Navigate to next screen after successful upload
         this.$router.push('/model-view');
       } catch (error) {
         console.error('Error uploading files:', error);
+      } finally {
+        this.isLoading = false;
       }
-    },
-    async getPresignUrl() {
-      // const file = this.selectedFiles[0];
-      const file = 'IMG_5991.JPG';
-      const response = await axios.get(`http://localhost:5000/get-image?filename=${file}`);
-      console.log('Presign URL:', response.data);
     }
   }
 };
 </script>
 
 <style scoped>
-.container {
-  max-width: 100%;
-  padding-left: 15px;
-  padding-right: 15px;
-}
-.card {
-  border-radius: 10px;
-  /* max-width: 100%; Ensure the card does not exceed screen width */
-}
-.card-title {
-  font-size: 1.5rem;
-  font-weight: bold;
-}
-.preview-container {
+.file-preview {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   margin-top: 10px;
 }
 .img-thumbnail {
-  max-width: 100px;
-  max-height: 100px;
-  margin-bottom: 5px;
+  width: 100%;
+  height: auto;
 }
-.remove-btn {
+.btn-danger {
   position: absolute;
   top: 5px;
   right: 5px;
-  /* background-color: red; */
-  border: none;
-  color: white;
-  font-size: 1rem;
-  line-height: 1rem;
-  padding: 0.2rem;
-  border-radius: 50%;
-}
-@media (min-width: 768px) {
-  .card {
-    max-width: 400px;
-  }
 }
 </style>

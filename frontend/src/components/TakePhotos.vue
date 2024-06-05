@@ -1,20 +1,25 @@
 <template>
   <div class="container mt-3 mt-md-5">
-    <div class="card mx-auto" :class="cardClass">
+    <div class="card mx-auto w-100">
       <div class="card-body text-center">
         <h5 class="card-title">Take Photos</h5>
-        <div v-if="cameraStream" class="camera-container mt-3">
-          <video ref="camera" autoplay playsinline></video>
-          <button class="btn btn-secondary mt-2" @click="takePhoto">Capture Photo</button>
-          <div class="mt-3">
-            <h6>Captured Photos:</h6>
-            <div v-for="(src, index) in previews" :key="index" class="preview-container">
-              <img :src="src" alt="preview" class="img-thumbnail">
-              <button class="btn btn-danger btn-sm remove-btn" @click="removePhoto(index)">x</button>
-            </div>
-          </div>
+        <div class="video-container">
+          <video ref="video" autoplay playsinline></video>
+          <button @click="takePhoto" class="btn btn-primary mt-3 w-100">
+            <i v-if="isLoading" class="fas fa-spinner fa-spin"></i>
+            <span v-else>Take Photo</span>
+          </button>
         </div>
-        <button class="btn btn-primary mt-3 w-100" @click="uploadPhotos">Process</button>
+        <div v-for="(photo, index) in photos" :key="index" class="photo-preview">
+          <img :src="photo" class="img-thumbnail" />
+          <button @click="removePhoto(index)" class="btn btn-danger btn-sm">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <button class="btn btn-primary mt-3 w-100" @click="processPhotos">
+          <i v-if="isLoading" class="fas fa-spinner fa-spin"></i>
+          <span v-else>Process</span>
+        </button>
       </div>
     </div>
   </div>
@@ -26,134 +31,77 @@ import axios from 'axios';
 export default {
   data() {
     return {
-      previews: [],
-      cameraStream: null
+      photos: [],
+      isLoading: false
     };
   },
-  computed: {
-    cardClass() {
-      return {
-        'w-100': true,
-        'w-md-50': true
-      };
-    }
-  },
-  mounted() {
-    this.openCamera();
-  },
-  beforeUnmount() {
-    this.closeCamera();
-  },
   methods: {
-    async openCamera() {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        this.cameraStream = stream;
-        await this.$nextTick();
-        this.$refs.camera.srcObject = stream;
-      } catch (err) {
-        console.error("Error accessing camera: ", err);
-      }
+    async mounted() {
+      const constraints = {
+        video: true
+      };
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      this.$refs.video.srcObject = stream;
     },
     takePhoto() {
-      const video = this.$refs.camera;
       const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const imgData = canvas.toDataURL('image/png');
-      this.previews.push(imgData);
+      canvas.width = this.$refs.video.videoWidth;
+      canvas.height = this.$refs.video.videoHeight;
+      canvas.getContext('2d').drawImage(this.$refs.video, 0, 0);
+      this.photos.push(canvas.toDataURL('image/png'));
     },
     removePhoto(index) {
-      this.previews.splice(index, 1);
+      this.photos.splice(index, 1);
     },
-    closeCamera() {
-      if (this.cameraStream) {
-        this.cameraStream.getTracks().forEach(track => track.stop());
-        this.cameraStream = null;
-      }
-    },
-    async uploadPhotos() {
-      const formData = new FormData();
-      this.previews.forEach((preview, index) => {
-        const byteString = atob(preview.split(',')[1]);
-        const mimeString = preview.split(',')[0].split(':')[1].split(';')[0];
-        const arrayBuffer = new ArrayBuffer(byteString.length);
-        const uint8Array = new Uint8Array(arrayBuffer);
-        for (let i = 0; i < byteString.length; i++) {
-          uint8Array[i] = byteString.charCodeAt(i);
-        }
-        const blob = new Blob([arrayBuffer], { type: mimeString });
-        formData.append('files', blob, `photo-${index}.png`);
-      });
-
+    async processPhotos() {
+      this.isLoading = true;
       try {
-        const response = await axios.post('http://localhost:5000/upload', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
+        const formData = new FormData();
+        this.photos.forEach(photo => {
+          const blob = this.dataURLtoBlob(photo);
+          formData.append('photos', blob);
         });
-        console.log('Photos uploaded successfully:', response.data.file_urls);
+        await axios.post('http://localhost:5000/upload', formData);
+        // Navigate to next screen after successful upload
+        this.$router.push('/model-view');
       } catch (error) {
         console.error('Error uploading photos:', error);
+      } finally {
+        this.isLoading = false;
       }
+    },
+    dataURLtoBlob(dataURL) {
+      const byteString = atob(dataURL.split(',')[1]);
+      const mimeString = dataURL.split(',')[0].split(':')[1].split(';')[0];
+      const buffer = new ArrayBuffer(byteString.length);
+      const data = new DataView(buffer);
+      for (let i = 0; i < byteString.length; i++) {
+        data.setUint8(i, byteString.charCodeAt(i));
+      }
+      return new Blob([buffer], { type: mimeString });
     }
   }
 };
 </script>
 
 <style scoped>
-.container {
-  max-width: 100%;
-  padding-left: 15px;
-  padding-right: 15px;
-}
-.card {
-  border-radius: 10px;
-}
-.card-title {
-  font-size: 1.5rem;
-  font-weight: bold;
-}
-.preview-container {
+.video-container {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+}
+.video-container video {
+  width: 100%;
+}
+.photo-preview {
+  position: relative;
   margin-top: 10px;
 }
 .img-thumbnail {
-  max-width: 100px;
-  max-height: 100px;
-  margin-bottom: 5px;
+  width: 100%;
+  height: auto;
 }
-.remove-btn {
+.btn-danger {
   position: absolute;
   top: 5px;
   right: 5px;
-  background-color: red;
-  border: none;
-  color: white;
-  font-size: 1rem;
-  line-height: 1rem;
-  padding: 0.2rem;
-  border-radius: 50%;
-}
-.camera-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-}
-video {
-  width: 100%;
-  height: auto;
-  border-radius: 10px;
-}
-@media (min-width: 768px) {
-  .card {
-    max-width: 400px;
-  }
 }
 </style>
