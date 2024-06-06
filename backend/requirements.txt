@@ -1,2 +1,6 @@
-boto3==1.18.64
-Flask==2.0.2
+boto3==1.34.119
+botocore==1.34.119
+Flask==3.0.3
+Flask-Cors==4.0.1
+Werkzeug==3.0.3
+python-dotenv==1.0.1

@@ -5,13 +5,8 @@
         <h5 class="card-title">Model Views</h5>
         <div class="form-group">
           <label for="objects">Objects</label>
-          <!-- <select v-model="selectedObject" @change="loadModel" class="form-control">
+          <select v-model="selectedObject" @change="loadModel" class="form-select">
             <option v-for="object in objects" :key="object" :value="object">{{ object }}</option>
-          </select> -->
-          <select class="form-select" id="model" v-model="selectedObject">
-            <option>Wolf</option>
-            <option>CylinderEngine</option>
-            <!-- Add more options as needed -->
           </select>
         </div>
         <div class="model-viewer-container">
@@ -26,7 +21,7 @@
 
           <!-- <model-viewer style="width: 100%; height: 300px;" id = "glb" crossorigin="anonymous" camera-controls ></model-viewer> -->
 
-          <model-viewer src="wolvic_3d_model.glb" ar ar-modes="webxr scene-viewer quick-look" camera-controls tone-mapping="neutral" poster="poster.webp" shadow-intensity="1">
+          <model-viewer src="wolvic_3d_model.glb" ar ar-modes="webxr scene-viewer quick-look" camera-controls tone-mapping="neutral" poster="poster.webp" shadow-intensity="1" style="width: 100%; height: 300px;">
             <div class="progress-bar hide" slot="progress-bar">
                 <div class="update-bar"></div>
             </div>

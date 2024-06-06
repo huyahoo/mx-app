@@ -50,6 +50,7 @@ export default {
         const formData = new FormData();
         this.files.forEach(file => formData.append('files', file.file));
         await axios.post('http://localhost:5000/upload', formData);
+        console.log("Uploaded files")
         // Navigate to next screen after successful upload
         this.$router.push('/model-view');
       } catch (error) {

@@ -1,32 +1,23 @@
 # app.py
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import boto3
-import os
 from werkzeug.utils import secure_filename
+from config import Config
 
 app = Flask(__name__)
 CORS(app)
 
-
+s3_client = Config.create_s3_client()
 
 @app.route('/', methods=['GET'])
 def index():
     return jsonify({'message': 'Hello, World!'})
-
-# @app.route('/upload-images', methods=['POST'])
-# def upload_images():
-#     print("triggerd")
-#     return jsonify({'message': 'Hello, World!'})
 
 @app.route('/get-image', methods=['GET'])
 def get_image():
     filename = request.args.get('filename')
     print("filename", filename)
     return get_presign_url(filename)
-
-
-
 
 def get_presign_url(filename):
     try:
@@ -36,7 +27,7 @@ def get_presign_url(filename):
         response = s3_client.generate_presigned_url(
             'get_object',
             Params={
-                'Bucket': S3_BUCKET_NAME,
+                'Bucket': Config.S3_BUCKET_NAME,
                 'Key': filename,
                 'ResponseContentDisposition': 'attachment; filename=' + filename
             },
@@ -44,13 +35,13 @@ def get_presign_url(filename):
         )
         return response
     except Exception as e:
-        return str(e)
+        return str(e), 500
     
 def upload_to_s3(file, filename):
     try:
         s3_client.upload_fileobj(
             file,
-            S3_BUCKET_NAME,
+            Config.S3_BUCKET_NAME,
             filename
         )
         return file.filename
@@ -63,9 +54,6 @@ def upload_files():
         return jsonify({'error': 'No files are found!'}), 400
 
     files = request.files.getlist('files')
-    file_urls = []
-    
-    print("len(files)", len(files))
 
     for file in files:
         filename = secure_filename(file.filename)
