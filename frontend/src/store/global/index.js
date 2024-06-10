@@ -8,7 +8,7 @@ export default {
   state: {
     formData: {
       objectName: 'astronaut',
-      saveDestination: 'visualize-3d-object-vr-dev',
+      saveDestination: 'mx-app-dev',
       model: 'Dust3r'
     },
   },
