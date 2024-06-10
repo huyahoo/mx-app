@@ -3,16 +3,35 @@
     <div class="card mx-auto w-100">
       <div class="card-body text-center">
         <h5 class="card-title">Upload Files</h5>
-        <input type="file" multiple @change="handleFileSelect" class="form-control" />
-        <div v-for="(file, index) in files" :key="index" class="file-preview">
+        <input
+          type="file"
+          multiple
+          @change="handleFileSelect"
+          class="form-control"
+        />
+        <div
+          v-for="(file, index) in files"
+          :key="index"
+          class="file-preview"
+        >
           <img :src="file.url" class="img-thumbnail" />
-          <button @click="removeFile(index)" class="btn btn-danger btn-sm">
+          <button
+            @click="removeFile(index)"
+            class="btn btn-danger btn-sm"
+          >
             <i class="fas fa-times"></i>
           </button>
           <p>{{ file.name }}</p>
         </div>
-        <button class="btn btn-primary mt-3 w-100" @click="processFiles" :disabled="isLoading">
-          <i v-if="isLoading" class="fas fa-spinner fa-spin"></i>
+        <button
+          class="btn btn-primary mt-3 w-100"
+          @click="processFiles"
+          :disabled="isLoading"
+        >
+          <i
+            v-if="isLoading"
+            class="fas fa-spinner fa-spin"
+          ></i>
           <span v-else>Process</span>
         </button>
       </div>
@@ -21,22 +40,26 @@
 </template>
 
 <script>
-import axios from 'axios';
+import axios from "axios";
 
 export default {
   data() {
     return {
       files: [],
-      isLoading: false
+      isLoading: false,
     };
   },
   methods: {
     handleFileSelect(event) {
       const selectedFiles = Array.from(event.target.files);
-      selectedFiles.forEach(file => {
+      selectedFiles.forEach((file) => {
         const reader = new FileReader();
-        reader.onload = e => {
-          this.files.push({ name: file.name, url: e.target.result, file });
+        reader.onload = (e) => {
+          this.files.push({
+            name: file.name,
+            url: e.target.result,
+            file,
+          });
         };
         reader.readAsDataURL(file);
       });
@@ -48,18 +71,24 @@ export default {
       this.isLoading = true;
       try {
         const formData = new FormData();
-        this.files.forEach(file => formData.append('files', file.file));
-        await axios.post('http://localhost:5000/upload', formData);
-        console.log("Uploaded files")
+        this.files.forEach((file) =>
+          formData.append("files", file.file)
+        );
+        // Use the environment variable
+        await axios.post(
+          `${process.env.VITE_API_URL}/upload`,
+          formData
+        );
+        console.log("Uploaded files");
         // Navigate to next screen after successful upload
-        this.$router.push('/model-view');
+        this.$router.push("/model-view");
       } catch (error) {
-        console.error('Error uploading files:', error);
+        console.error("Error uploading files:", error);
       } finally {
         this.isLoading = false;
       }
-    }
-  }
+    },
+  },
 };
 </script>
 

@@ -1,4 +1,3 @@
-# frontend/Dockerfile
 FROM node:18-alpine
 
 WORKDIR /app
@@ -19,5 +18,6 @@ RUN yarn global add serve
 # Expose the port the app runs on
 EXPOSE 8080
 
-# Run the application
-CMD ["serve", "-s", "dist", "-l", "5000"]
+# Run the application with the --single flag
+# CMD ["serve", "-s", "dist", "-l", "8080", "--single"]
+CMD ["yarn", "dev"]

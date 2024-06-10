@@ -29,7 +29,7 @@ def get_presign_url(filename):
             Params={
                 'Bucket': Config.S3_BUCKET_NAME,
                 'Key': filename,
-                'ResponseContentDisposition': 'attachment; filename=' + filename
+                'ResponseContentDisposition': 'attachment; filename=' + filename    
             },
             ExpiresIn=3600
         )

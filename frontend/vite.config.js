@@ -1,7 +1,10 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import dotenv from 'dotenv'
 
-// https://vitejs.dev/config/
+// Load environment variables from .env file
+dotenv.config()
+
 export default defineConfig({
   plugins: [vue({
     template: {
@@ -10,4 +13,7 @@ export default defineConfig({
       }
     }
   })],
+  define: {
+    'process.env': process.env
+  }
 })
