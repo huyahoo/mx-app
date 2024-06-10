@@ -10,7 +10,7 @@
           </div>
           <div class="mb-3 config__input">
             <label for="saveDestination" class="form-label">Save Destination</label>
-            <input type="text" class="form-control" id="saveDestination" v-model="formData.saveDestination">
+            <input type="text" class="form-control" id="saveDestination" v-model="formData.saveDestination" disabled>
           </div>
           <div class="mb-3 config__input">
             <label for="model" class="form-label">Model</label>
@@ -73,7 +73,7 @@ export default {
     font-weight: bold;
     margin-bottom: 0.25rem;
   }
-} 
+}
 @media (min-width: 768px) {
   .card {
     max-width: 400px;

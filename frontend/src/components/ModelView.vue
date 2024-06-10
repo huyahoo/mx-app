@@ -10,31 +10,11 @@
           </select>
         </div>
         <div class="model-viewer-container">
-          <!-- <model-viewer 
-            v-if="modelSrc" 
-            :src="modelSrc" 
-            alt="3D Model" 
-            auto-rotate 
-            camera-controls 
-            style="width: 100%; height: 300px;">
-          </model-viewer> -->
-
-          <!-- <model-viewer style="width: 100%; height: 300px;" id = "glb" crossorigin="anonymous" camera-controls ></model-viewer> -->
-
-          <model-viewer src="wolvic_3d_model.glb" ar ar-modes="webxr scene-viewer quick-look" camera-controls tone-mapping="neutral" poster="poster.webp" shadow-intensity="1" style="width: 100%; height: 300px;">
+          <model-viewer id="glb" :src="selectedObject" ar ar-modes="webxr scene-viewer quick-look" camera-controls tone-mapping="neutral" poster="poster.webp" shadow-intensity="1" style="width: 100%; height: 300px;">
             <div class="progress-bar hide" slot="progress-bar">
                 <div class="update-bar"></div>
             </div>
-            <!-- <button slot="ar-button" id="ar-button">
-                View in your space
-            </button> -->
-            <!-- <div id="ar-prompt">
-                <img src="https://modelviewer.dev/shared-assets/icons/hand.png">
-            </div> -->
           </model-viewer>
-
-          <!-- <model-viewer camera-controls touch-action="pan-y" alt="A 3D model of a sphere" src="./2CylinderEngine.glb">
-          </model-viewer> -->
         </div>
         <button class="btn btn-primary mt-3 w-100" @click="downloadModel">
           <i v-if="isLoading" class="fas fa-spinner fa-spin"></i>
@@ -44,6 +24,9 @@
           <i v-if="isLoadingThreeJS" class="fas fa-spinner fa-spin"></i>
           <span v-else>ThreeJS</span>
         </button>
+        <div v-if="isLoadingModel" class="loading-overlay">
+          <div class="spinner"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -55,10 +38,11 @@ import axios from 'axios';
 export default {
   data() {
     return {
-      objects: ["Wolf", "CylinderEngine"],
-      selectedObject: 'Wolf',
-      modelSrc: '',
+      objects: [],
+      selectedObject: '',
+      modelSrc: 'wolvic_3d_model.glb',
       isLoading: false,
+      isLoadingModel: false,
       isLoadingThreeJS: false
     };
   },
@@ -71,39 +55,45 @@ export default {
     }
   },
   async created() {
-    // await this.loadObjects();
+    await this.getModels();
   },
   methods: {
-    async loadObjects() {
+    async getModels() {
+      this.isLoadingModel = true;
       try {
-        const response = await axios.get('http://localhost:5000/s3-objects');
-        this.objects = response.data.objects;
+        const res = await axios.get(`${process.env.VITE_API_URL}/get-models`);
+        this.objects = res.data;
         if (this.objects.length > 0) {
+          this.objects = res.data.map((model) => model.split('/')[1]);
           this.selectedObject = this.objects[0];
           this.loadModel();
         }
       } catch (error) {
-        console.error('Error loading objects:', error);
+        console.error('Error getting models:', error);
+      } finally {
+        this.isLoadingModel = false;
       }
     },
     async loadModel() {
       if (this.selectedObject) {
-        // this.modelSrc = `https://your-s3-bucket-url/${this.selectedObject}`;
-        // this.modelSrc = '/Users/huyphung/Repositories/personal/mx-app/wolvic_3d_model.glb';
-        const file = 'wolvic_3d_model.glb';
-        const response = await axios.get(`http://localhost:5000/get-image?filename=${file}`);
-        console.log(response.data)
-        document.getElementById('glb').src = response.data;
-        // this.modelSrc = response.data;
+        this.isLoadingModel = true;
+        const file = `output/${this.selectedObject}`;
+        const res = await axios.get(`${process.env.VITE_API_URL}/get-image?filename=${file}`);
+        const modelViewerElement = document.getElementById('glb');
+        modelViewerElement.src = res.data;
+
+        modelViewerElement.addEventListener('load', () => {
+            this.isLoadingModel = false;
+        }, { once: true });
       }
     },
     async downloadModel() {
       this.isLoading = true;
       try {
-        // const link = document.createElement('a');
-        // link.href = this.modelSrc;
-        // link.download = this.selectedObject;
-        // link.click();
+        const link = document.createElement('a');
+        link.href = this.modelSrc;
+        link.download = this.selectedObject;
+        link.click();
       } catch (error) {
         console.error('Error downloading model:', error);
       } finally {
@@ -112,7 +102,6 @@ export default {
     },
     useThreeJS() {
       this.isLoadingThreeJS = true;
-      // Handle navigation to ThreeJS implementation screen
       this.isLoadingThreeJS = false;
     }
   }
@@ -137,5 +126,39 @@ export default {
   background-color: #f3f3f3;
   border-radius: 10px;
   overflow: hidden;
+}
+.spinner {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-left-color: #000;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
 }
 </style>

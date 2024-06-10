@@ -1,23 +1,13 @@
-# app.py
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 from config import Config
+import os
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='../frontend/dist', static_url_path='')
 CORS(app)
 
 s3_client = Config.create_s3_client()
-
-@app.route('/', methods=['GET'])
-def index():
-    return jsonify({'message': 'Hello, World!'})
-
-@app.route('/get-image', methods=['GET'])
-def get_image():
-    filename = request.args.get('filename')
-    print("filename", filename)
-    return get_presign_url(filename)
 
 def get_presign_url(filename):
     try:
@@ -34,6 +24,32 @@ def get_presign_url(filename):
             ExpiresIn=3600
         )
         return response
+    except Exception as e:
+        return str(e), 500
+
+@app.route('/healthcheck', methods=['GET'])
+def index():
+    return jsonify({'message': 'Hello, World!'})
+
+@app.route('/get-image', methods=['GET'])
+def get_image():
+    filename = request.args.get('filename')
+    print("filename", filename)
+    return get_presign_url(filename)
+
+@app.route('/get-models', methods=['GET'])
+def get_all_models():
+    try:
+        response = s3_client.list_objects_v2(
+            Bucket=Config.S3_BUCKET_NAME,
+            Prefix='output/'
+        )
+        files = []
+        for obj in response.get('Contents', []):
+            key = obj.get('Key')
+            if key.endswith('.glb'):
+                files.append(key)
+        return jsonify(files)
     except Exception as e:
         return str(e), 500
     
@@ -61,5 +77,14 @@ def upload_files():
 
     return jsonify({'message': 'OK'}), 200
 
+# Serve the Vue.js application
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve(path):
+    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0')
