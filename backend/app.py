@@ -27,9 +27,13 @@ def get_presign_url(filename):
     except Exception as e:
         return str(e), 500
 
-@app.route('/healthcheck', methods=['GET'])
+@app.route('/', methods=['GET'])
 def index():
     return jsonify({'message': 'Hello, World!'})
+
+@app.route('/healthcheck', methods=['GET'])
+def health_check():
+    return jsonify({'message': 'OK!'})
 
 @app.route('/get-image', methods=['GET'])
 def get_image():
