@@ -74,13 +74,11 @@ export default {
         this.files.forEach((file) =>
           formData.append("files", file.file)
         );
-        // Use the environment variable
         await axios.post(
           `${process.env.VITE_API_URL}/upload`,
           formData
         );
         console.log("Uploaded files");
-        // Navigate to next screen after successful upload
         this.$router.push("/model-view");
       } catch (error) {
         console.error("Error uploading files:", error);

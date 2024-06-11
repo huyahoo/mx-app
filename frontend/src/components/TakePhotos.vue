@@ -3,40 +3,19 @@
     <div class="card mx-auto w-100">
       <div class="card-body text-center">
         <h5 class="card-title">Take Photos</h5>
-        <div class="video-container">
+        <div class="video-container" v-show="!isLoading">
           <video ref="video" autoplay playsinline></video>
-          <button
-            @click="takePhoto"
-            class="btn btn-primary mt-3 w-100"
-          >
-            <i
-              v-if="isLoading"
-              class="fas fa-spinner fa-spin"
-            ></i>
-            <span v-else>Take Photo</span>
+          <button @click="takePhoto" class="camera-button">
           </button>
         </div>
-        <div
-          v-for="(photo, index) in photos"
-          :key="index"
-          class="photo-preview"
-        >
+        <div v-for="(photo, index) in photos" :key="index" class="photo-preview">
           <img :src="photo" class="img-thumbnail" />
-          <button
-            @click="removePhoto(index)"
-            class="btn btn-danger btn-sm"
-          >
+          <button @click="removePhoto(index)" class="btn btn-danger btn-sm">
             <i class="fas fa-times"></i>
           </button>
         </div>
-        <button
-          class="btn btn-primary mt-3 w-100"
-          @click="processPhotos"
-        >
-          <i
-            v-if="isLoading"
-            class="fas fa-spinner fa-spin"
-          ></i>
+        <button class="btn btn-primary mt-3 w-100" @click="processPhotos">
+          <i v-if="isLoading" class="fas fa-spinner fa-spin"></i>
           <span v-else>Process</span>
         </button>
       </div>
@@ -54,24 +33,24 @@ export default {
       isLoading: false,
     };
   },
+  mounted() {
+    this.initCamera();
+  },
   methods: {
-    async mounted() {
-      const constraints = {
-        video: true,
-      };
-      const stream =
-        await navigator.mediaDevices.getUserMedia(
-          constraints
-        );
-      this.$refs.video.srcObject = stream;
+    async initCamera() {
+      try {
+        const constraints = { video: true };
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        this.$refs.video.srcObject = stream;
+      } catch (error) {
+        console.error("Error accessing camera:", error);
+      }
     },
     takePhoto() {
       const canvas = document.createElement("canvas");
       canvas.width = this.$refs.video.videoWidth;
       canvas.height = this.$refs.video.videoHeight;
-      canvas
-        .getContext("2d")
-        .drawImage(this.$refs.video, 0, 0);
+      canvas.getContext("2d").drawImage(this.$refs.video, 0, 0);
       this.photos.push(canvas.toDataURL("image/png"));
     },
     removePhoto(index) {
@@ -81,29 +60,23 @@ export default {
       this.isLoading = true;
       try {
         const formData = new FormData();
-        this.photos.forEach((photo) =>
-          formData.append("photos", photo)
-        );
-        // Use the environment variable
-        await axios.post(
-          `${process.env.VITE_API_URL}/upload`,
-          formData
-        );
+        this.photos.forEach((photo) => {
+          const blob = this.dataURLtoBlob(photo);
+          formData.append("files", blob);
+        });
+        await axios.post(`${process.env.VITE_API_URL}/upload`, formData);
         console.log("Uploaded photos");
-        // Navigate to next screen after successful upload
         this.$router.push("/model-view");
       } catch (error) {
         console.error("Error uploading photos:", error);
+        console.error("Server response:", error.response);
       } finally {
         this.isLoading = false;
       }
     },
     dataURLtoBlob(dataURL) {
       const byteString = atob(dataURL.split(",")[1]);
-      const mimeString = dataURL
-        .split(",")[0]
-        .split(":")[1]
-        .split(";")[0];
+      const mimeString = dataURL.split(",")[0].split(":")[1].split(";")[0];
       const buffer = new ArrayBuffer(byteString.length);
       const data = new DataView(buffer);
       for (let i = 0; i < byteString.length; i++) {
@@ -121,6 +94,23 @@ export default {
 }
 .video-container video {
   width: 100%;
+}
+.camera-button {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 30px;
+  background-color: white;
+  border: 5px solid rgba(0, 0, 0, 0.2);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 9px;
+  color: black;
+  z-index: 10;
+  cursor: pointer;
 }
 .photo-preview {
   position: relative;
