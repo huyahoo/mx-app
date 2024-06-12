@@ -3,6 +3,11 @@ from flask_cors import CORS
 from werkzeug.utils import secure_filename
 from config import Config
 import os
+import torch
+import trimesh
+from pathlib import Path
+from mini_dust3r.api import OptimizedResult, inferece_dust3r
+from mini_dust3r.model import AsymmetricCroCo3DStereo
 
 app = Flask(__name__, static_folder='../frontend/dist', static_url_path='')
 CORS(app)
@@ -63,9 +68,45 @@ def upload_to_s3(file, filename):
             Config.S3_BUCKET_NAME,
             filename
         )
-        return file.filename
+        return filename
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+def save_as_glb(mesh: trimesh.Trimesh, file_path: Path):
+    """
+    Save a 3D mesh as a .glb file.
+    """
+    mesh.export(file_path, file_type='glb')
+
+def run_inference_and_upload(image_dir: Path, output_filename: str):
+    # Determine the device to use for inference
+    if torch.backends.mps.is_available():
+        device = "mps"
+    elif torch.cuda.is_available():
+        device = "cuda"
+    else:
+        device = "cpu"
+    
+    # Load the pre-trained model and move it to the appropriate device
+    model = AsymmetricCroCo3DStereo.from_pretrained("naver/DUSt3R_ViTLarge_BaseDecoder_512_dpt").to(device)
+    
+    # Perform inference and get the optimized results
+    optimized_results: OptimizedResult = inferece_dust3r(
+        image_dir_or_list=image_dir,
+        model=model,
+        device=device,
+        batch_size=1,
+    )
+    
+    # Save the optimized results as .glb files
+    mesh_file_path = Path(f"/tmp/{output_filename}")
+    
+    # Save the mesh
+    save_as_glb(optimized_results.mesh, mesh_file_path)
+    
+    # Upload the .glb file to S3
+    with open(mesh_file_path, "rb") as file:
+        upload_to_s3(file, f"output/{output_filename}")
 
 @app.route('/api/upload', methods=['POST'])
 def upload_files():
@@ -74,9 +115,24 @@ def upload_files():
 
     files = request.files.getlist('files')
 
+    # Use a directory in /tmp for temporary storage
+    image_dir = Path("/tmp/uploaded_images")
+    image_dir.mkdir(parents=True, exist_ok=True)
+
     for file in files:
         filename = secure_filename(file.filename)
-        upload_to_s3(file, filename)
+        # upload_to_s3(file, filename)
+        
+        file_path = image_dir / filename
+        file.save(file_path)
+
+    # Run inference and upload results to S3
+    run_inference_and_upload(image_dir, "optimized_result_mesh.glb")
+
+    # Clean up uploaded files
+    for file_path in image_dir.iterdir():
+        file_path.unlink()
+    image_dir.rmdir()
 
     return jsonify({'message': 'OK'}), 200
 
