@@ -12,7 +12,7 @@
           accept="image/*"
           style="display: none"
         />
-        <label for="file" class="image-label custom-file-upload">
+        <label for="file" class="image-label custom-file-upload" v-show="!isLoading">
           Choose File
           <i class="bi bi-cloud-upload-fill ms-2" style="font-size: 16px"></i>
         </label>
