@@ -1,5 +1,5 @@
 <template>
-  <div class="container mt-3 mt-md-5">
+  <div class="container mt-md-5">
     <div class="card mx-auto" :class="cardClass">
       <div class="card-body">
         <h5 class="card-title text-center">Configuration</h5>

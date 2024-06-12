@@ -107,7 +107,7 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 9px;
+  font-size: 8.5px;
   color: black;
   z-index: 10;
   cursor: pointer;
