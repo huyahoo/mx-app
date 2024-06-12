@@ -22,11 +22,14 @@ a:hover {
   color: #535bf2;
 }
 
+p {
+  margin: unset !important;
+}
+
 body {
   margin: 0;
   display: flex;
   place-items: center;
-  min-width: 320px;
   min-height: 100vh;
 }
 
@@ -58,10 +61,22 @@ button:focus-visible {
   padding: 2em;
 }
 
+.card-title {
+  font-size: 2rem !important;
+  font-weight: bold !important;
+  margin-bottom: 3rem !important;
+}
+
+.label__input {
+  text-align: left !important;
+  & .form-label {
+    font-weight: bold !important;
+    margin-bottom: 0.25rem !important;
+  }
+}
+
 #app {
-  max-width: 1280px;
   margin: 0 auto;
-  text-align: center;
 }
 
 @media (prefers-color-scheme: light) {

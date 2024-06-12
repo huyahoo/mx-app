@@ -3,26 +3,32 @@
     <div class="card mx-auto" :class="cardClass">
       <div class="card-body text-center">
         <h5 class="card-title">Model Views</h5>
-        <div class="form-group">
-          <label for="objects">Objects</label>
+        <div class="form-group mb-3 label__input">
+          <label for="objects" class="form-label">Objects</label>
           <select v-model="selectedObject" @change="loadModel" class="form-select">
             <option v-for="object in objects" :key="object" :value="object">{{ object }}</option>
           </select>
         </div>
         <div class="model-viewer-container">
-          <model-viewer id="glb" :src="selectedObject" ar ar-modes="webxr scene-viewer quick-look" camera-controls tone-mapping="neutral" poster="poster.webp" shadow-intensity="1" style="width: 100%; height: 300px;">
+          <model-viewer id="glb" :src="selectedObject" ar ar-modes="webxr scene-viewer quick-look" camera-controls tone-mapping="neutral" poster="poster.webp" shadow-intensity="1" style="width: 100%; height: 310px;">
             <div class="progress-bar hide" slot="progress-bar">
                 <div class="update-bar"></div>
             </div>
           </model-viewer>
         </div>
-        <button class="btn btn-primary mt-3 w-100" @click="downloadModel">
+        <button class="btn btn-primary mt-3 w-100" @click="downloadModel" :disabled="!selectedObject">
           <i v-if="isLoading" class="fas fa-spinner fa-spin"></i>
-          <span v-else>Download</span>
+          <span v-else>
+            <i class="bi bi-cloud-arrow-down-fill me-1"></i>
+            Download
+          </span>
         </button>
-        <button class="btn btn-secondary mt-2 w-100" @click="useThreeJS">
+        <button class="btn btn-secondary mt-2 w-100" @click="useThreeJS" :disabled="!selectedObject">
           <i v-if="isLoadingThreeJS" class="fas fa-spinner fa-spin"></i>
-          <span v-else>ThreeJS</span>
+          <span v-else>
+            Enter
+            <i class="bi bi-badge-vr-fill me-1"></i>
+          </span>
         </button>
         <div v-if="isLoadingModel" class="loading-overlay">
           <div class="spinner"></div>
@@ -115,11 +121,7 @@ export default {
   padding-right: 15px;
 }
 .card {
-  border-radius: 10px;
-}
-.card-title {
-  font-size: 1.5rem;
-  font-weight: bold;
+  width: 310px;
 }
 .model-viewer-container {
   margin-top: 10px;

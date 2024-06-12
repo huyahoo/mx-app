@@ -7,8 +7,8 @@ export default {
   namespaced: true,
   state: {
     formData: {
-      objectName: 'astronaut',
-      saveDestination: 'mx-app-dev',
+      objectName: '',
+      saveDestination: process.env.S3_BUCKET_NAME,
       model: 'Dust3r'
     },
   },

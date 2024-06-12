@@ -7,7 +7,10 @@ Group=www-data
 WorkingDirectory=/home/ubuntu/mx-app/backend
 Environment="PATH=/home/ubuntu/mx-app/backend/venv/bin"
 EnvironmentFile=/home/ubuntu/mx-app/.env
-ExecStart=/home/ubuntu/mx-app/backend/venv/bin/gunicorn --workers 3 --bind unix:/home/ubuntu/mx-app/backend/mx>
+#ExecStart=/home/ubuntu/mx-app/backend/venv/bin/gunicorn --workers 3 --bind unix:mx-app.sock -m 007 app:app
+ExecStart=/home/ubuntu/mx-app/backend/venv/bin/gunicorn --workers 3 --bind unix:/home/ubuntu/mx-app/backend/mx-app.sock -m 007 app:app
+#ExecStart=/home/ubuntu/mx-app/backend/venv/bin/gunicorn -b localhost:5000 app:app
 Restart=always
 [Install]
 WantedBy=multi-user.target
+

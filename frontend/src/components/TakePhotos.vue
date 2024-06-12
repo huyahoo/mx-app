@@ -1,6 +1,6 @@
 <template>
   <div class="container mt-3 mt-md-5">
-    <div class="card mx-auto w-100">
+    <div class="card mx-auto">
       <div class="card-body text-center">
         <h5 class="card-title">Take Photos</h5>
         <div class="video-container" v-show="!isLoading">
@@ -16,9 +16,11 @@
             <i class="fas fa-times"></i>
           </button>
         </div>
-        <button class="btn btn-primary mt-3 w-100" @click="processPhotos">
+        <button class="btn btn-primary mt-3 w-100" @click="processPhotos" :disabled="!isValid || isLoading">
           <i v-if="isLoading" class="fas fa-spinner fa-spin"></i>
-          <span v-else>Process</span>
+          <span v-else>
+            <i class="fas fa-cogs"></i>
+            Process</span>
         </button>
       </div>
     </div>
@@ -35,6 +37,11 @@ export default {
       isLoading: false,
       facingMode: 'environment', // or 'user' for front camera
     };
+  },
+  computed: {
+    isValid() {
+      return this.photos.length > 0;
+    },
   },
   mounted() {
     this.initCamera();
@@ -104,6 +111,9 @@ export default {
 </script>
 
 <style scoped>
+.card {
+  width: 310px;
+}
 .video-container {
   position: relative;
 }
@@ -161,5 +171,6 @@ export default {
   right: 5px;
   background-color: transparent;
   border: none;
+  font-size: 16px;
 }
 </style>

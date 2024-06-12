@@ -1,11 +1,17 @@
 <template>
   <div class="container mt-3 mt-md-5">
-    <div class="card mx-auto" :class="cardClass">
+    <div class="card mx-auto">
       <div class="card-body text-center">
         <h5 class="card-title">Upload</h5>
-        <button class="btn btn-primary my-3 w-100" @click="goToUploadFiles">Upload Files</button>
+        <button class="btn btn-primary my-3 w-100" @click="goToUploadFiles">
+          <i class="bi bi-cloud-upload-fill me-1" style="font-size: 16px"></i>
+          Upload Files
+        </button>
         <p>Or</p>
-        <button class="btn btn-primary my-3 w-100" @click="goToTakePhotos">Take Photos</button>
+        <button class="btn btn-primary my-3 w-100" @click="goToTakePhotos">
+          <i class="bi bi-camera-fill me-1"></i>
+          Take Photos
+        </button>
       </div>
     </div>
   </div>
@@ -13,14 +19,6 @@
 
 <script>
 export default {
-  computed: {
-    cardClass() {
-      return {
-        'w-100': true,
-        'w-md-50': true
-      };
-    }
-  },
   methods: {
     goToUploadFiles() {
       this.$router.push('/upload-files');
@@ -40,11 +38,6 @@ export default {
 }
 .card {
   border-radius: 10px;
-}
-.card-title {
-  font-size: 2rem;
-  font-weight: bold;
-  margin-bottom: 3rem;
 }
 @media (min-width: 768px) {
   .card {
