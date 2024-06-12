@@ -27,21 +27,21 @@ def get_presign_url(filename):
     except Exception as e:
         return str(e), 500
 
-@app.route('/', methods=['GET'])
+@app.route('/api/', methods=['GET'])
 def index():
     return jsonify({'message': 'Hello, World!'})
 
-@app.route('/healthcheck', methods=['GET'])
+@app.route('/api/healthcheck', methods=['GET'])
 def health_check():
     return jsonify({'message': 'OK!'})
 
-@app.route('/get-image', methods=['GET'])
+@app.route('/api/get-image', methods=['GET'])
 def get_image():
     filename = request.args.get('filename')
     print("filename", filename)
     return get_presign_url(filename)
 
-@app.route('/get-models', methods=['GET'])
+@app.route('/api/get-models', methods=['GET'])
 def get_all_models():
     try:
         response = s3_client.list_objects_v2(
@@ -68,7 +68,7 @@ def upload_to_s3(file, filename):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/upload', methods=['POST'])
+@app.route('/api/upload', methods=['POST'])
 def upload_files():
     if 'files' not in request.files:
         return jsonify({'error': 'No files are found!'}), 400
@@ -82,8 +82,8 @@ def upload_files():
     return jsonify({'message': 'OK'}), 200
 
 # Serve the Vue.js application
-@app.route('/', defaults={'path': ''})
-@app.route('/<path:path>')
+@app.route('/api/', defaults={'path': ''})
+@app.route('/api/<path:path>')
 def serve(path):
     if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
         return send_from_directory(app.static_folder, path)
