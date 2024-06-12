@@ -71,13 +71,14 @@ export default {
       this.isLoading = true;
       try {
         const formData = new FormData();
-        this.files.forEach((file) =>
+        this.files.forEach((file) => {
           formData.append("files", file.file)
-        );
-        await axios.post(
-          `${process.env.VITE_API_URL}/upload`,
-          formData
-        );
+        });
+
+        const objectName = this.$store.state.global.formData.objectName;
+        formData.append("objectName", objectName);
+
+        await axios.post(`${process.env.VITE_API_URL}/upload`, formData);
         console.log("Uploaded files");
         this.$router.push("/model-view");
       } catch (error) {

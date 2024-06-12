@@ -67,10 +67,14 @@ export default {
       this.isLoading = true;
       try {
         const formData = new FormData();
-        this.photos.forEach((photo) => {
+        this.photos.forEach((photo, index) => {
           const blob = this.dataURLtoBlob(photo);
-          formData.append("files", blob);
+          formData.append("files", new File([blob], `photo${index}.png`));
         });
+
+        const objectName = this.$store.state.global.formData.objectName;
+        formData.append("objectName", objectName);
+
         await axios.post(`${process.env.VITE_API_URL}/upload`, formData);
         console.log("Uploaded photos");
         this.$router.push("/model-view");

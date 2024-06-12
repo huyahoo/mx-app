@@ -56,8 +56,16 @@ def get_all_models():
         for obj in response.get('Contents', []):
             key = obj.get('Key')
             if key.endswith('.glb'):
-                files.append(key)
-        return jsonify(files)
+                files.append({
+                    'key': key,
+                    'last_modified': obj.get('LastModified')
+                })
+
+        # Sort files by last modified time in descending order
+        files.sort(key=lambda x: x['last_modified'], reverse=True)
+        sorted_files = [file['key'] for file in files]
+        
+        return jsonify(sorted_files)
     except Exception as e:
         return str(e), 500
 
@@ -113,11 +121,19 @@ def upload_files():
     if 'files' not in request.files:
         return jsonify({'error': 'No files are found!'}), 400
 
+    if 'objectName' not in request.form:
+        return jsonify({'error': 'No object name found!'}), 400
+
     files = request.files.getlist('files')
+    object_name = request.form['objectName']
 
     # Use a directory in /tmp for temporary storage
     image_dir = Path("/tmp/uploaded_images")
     image_dir.mkdir(parents=True, exist_ok=True)
+
+    # Clear the directory before saving new files
+    for file_path in image_dir.iterdir():
+        file_path.unlink()
 
     for file in files:
         filename = secure_filename(file.filename)
@@ -127,7 +143,7 @@ def upload_files():
         file.save(file_path)
 
     # Run inference and upload results to S3
-    run_inference_and_upload(image_dir, "optimized_result_mesh.glb")
+    run_inference_and_upload(image_dir, f"{object_name}.glb")
 
     # Clean up uploaded files
     for file_path in image_dir.iterdir():
