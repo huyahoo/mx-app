@@ -38,7 +38,6 @@ def health_check():
 @app.route('/api/get-image', methods=['GET'])
 def get_image():
     filename = request.args.get('filename')
-    print("filename", filename)
     return get_presign_url(filename)
 
 @app.route('/api/get-models', methods=['GET'])
@@ -56,7 +55,7 @@ def get_all_models():
         return jsonify(files)
     except Exception as e:
         return str(e), 500
-    
+
 def upload_to_s3(file, filename):
     try:
         s3_client.upload_fileobj(
@@ -80,15 +79,6 @@ def upload_files():
         upload_to_s3(file, filename)
 
     return jsonify({'message': 'OK'}), 200
-
-# Serve the Vue.js application
-@app.route('/api/', defaults={'path': ''})
-@app.route('/api/<path:path>')
-def serve(path):
-    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
-        return send_from_directory(app.static_folder, path)
-    else:
-        return send_from_directory(app.static_folder, 'index.html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
