@@ -103,5 +103,7 @@ export default {
   position: absolute;
   top: 5px;
   right: 5px;
+  background-color: transparent;
+  border: none;
 }
 </style>

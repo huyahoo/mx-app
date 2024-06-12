@@ -5,7 +5,9 @@
         <h5 class="card-title">Take Photos</h5>
         <div class="video-container" v-show="!isLoading">
           <video ref="video" autoplay playsinline></video>
-          <button @click="takePhoto" class="camera-button">
+          <button @click="takePhoto" class="camera-button"></button>
+          <button @click="toggleCamera" class="switch-button">
+            <i class="bi bi-arrow-repeat"></i>
           </button>
         </div>
         <div v-for="(photo, index) in photos" :key="index" class="photo-preview">
@@ -31,6 +33,7 @@ export default {
     return {
       photos: [],
       isLoading: false,
+      facingMode: 'environment', // or 'user' for front camera
     };
   },
   mounted() {
@@ -39,7 +42,11 @@ export default {
   methods: {
     async initCamera() {
       try {
-        const constraints = { video: true };
+        const constraints = {
+          video: {
+            facingMode: this.facingMode,
+          },
+        };
         const stream = await navigator.mediaDevices.getUserMedia(constraints);
         this.$refs.video.srcObject = stream;
       } catch (error) {
@@ -84,6 +91,10 @@ export default {
       }
       return new Blob([buffer], { type: mimeString });
     },
+    toggleCamera() {
+      this.facingMode = this.facingMode === 'user' ? 'environment' : 'user';
+      this.initCamera();
+    },
   },
 };
 </script>
@@ -112,6 +123,26 @@ export default {
   z-index: 10;
   cursor: pointer;
 }
+.switch-button {
+  position: absolute;
+  bottom: 12px;
+  right: 0%;
+  transform: translateX(-50%);
+  height: 25px;
+  width: 10px; 
+  background-color: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 10px;
+  z-index: 10;
+  cursor: pointer;
+}
+.switch-button i {
+  font-size: 15px;
+}
 .photo-preview {
   position: relative;
   margin-top: 10px;
@@ -124,5 +155,7 @@ export default {
   position: absolute;
   top: 5px;
   right: 5px;
+  background-color: transparent;
+  border: none;
 }
 </style>
