@@ -13,22 +13,25 @@
           style="display: none"
         />
         <label for="file" class="image-label custom-file-upload" v-show="!isLoading">
-          Choose File
+          Choose Files
           <i class="bi bi-cloud-upload-fill ms-2" style="font-size: 16px"></i>
         </label>
-        <div
-          v-for="(file, index) in files"
-          :key="index"
-          class="file-preview"
-        >
-          <img :src="file.url" class="img-thumbnail" />
-          <button
-            @click="removeFile(index)"
-            class="btn btn-danger btn-sm"
+        <div class="file-previews-container">
+          <div
+            v-for="(file, index) in files"
+            :key="index"
+            class="file-preview"
           >
-            <i class="fas fa-times"></i>
-          </button>
-          <p class="image-label">{{ file.name }}</p>
+            <img :src="file.url" class="img-thumbnail" />
+            <button
+              @click="removeFile(index)"
+              class="btn btn-danger btn-sm"
+              :disabled="isLoading"
+            >
+              <i class="fas fa-times"></i>
+            </button>
+            <p class="image-label">{{ file.name }}</p>
+          </div>
         </div>
         <button
           class="btn btn-primary mt-3 w-100"
@@ -44,6 +47,11 @@
             Process
           </span>
         </button>
+
+        <!-- <div v-if="isLoading" class="loading-overlay">
+          <div class="spinner"></div>
+          <p class="overlay-label">Reconstructing 3D Model</p>
+        </div> -->
       </div>
     </div>
   </div>
@@ -120,13 +128,23 @@ export default {
   display: flex;
 }
 .card {
-  max-height: 756px;
   max-width: 310px;
-  overflow: hidden;
+}
+.file-previews-container {
+  max-height: 200px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  justify-content: space-evenly;
+  margin-top: 10px;
+  overflow: scroll;
 }
 .file-preview {
   position: relative;
-  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 45%;
 }
 .img-thumbnail {
   width: 100%;
@@ -134,15 +152,25 @@ export default {
 }
 .btn-danger {
   position: absolute;
-  top: 5px;
-  right: 5px;
+  top: -5px;
+  right: -2px;
   background-color: transparent;
   border: none;
   font-size: 16px;
 }
-.image-label {
+.image-label, .overlay-label {
   color: gray;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 12px;
+  font-weight: 400;
+  width: 100%;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap; 
 }
+
+/* .overlay-label {
+  text-align: center;
+  position: absolute;
+  top: 55%;
+} */
 </style>

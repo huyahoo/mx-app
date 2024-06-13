@@ -14,11 +14,20 @@ def save_as_glb(mesh: trimesh.Trimesh, file_path: Path):
 def main(image_dir: Path):
     # Determine the device to use for inference
     if torch.backends.mps.is_available():
-        device = "mps"
+        try:
+            # Try a dummy operation to check if it's supported
+            print("Trying to use MPS for inference")
+            torch.linalg.det(torch.randn(1, device='mps'))
+            device = "mps"
+        except RuntimeError:
+            # If the operation is not supported, fallback to CPU or CUDA
+            device = "cuda" if torch.cuda.is_available() else "cpu"
     elif torch.cuda.is_available():
         device = "cuda"
     else:
         device = "cpu"
+        
+    print(f"Using device: {device}")
     
     # Load the pre-trained model and move it to the appropriate device
     model = AsymmetricCroCo3DStereo.from_pretrained("naver/DUSt3R_ViTLarge_BaseDecoder_512_dpt").to(device)

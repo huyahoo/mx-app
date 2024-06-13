@@ -10,11 +10,13 @@
             <i class="bi bi-arrow-repeat"></i>
           </button>
         </div>
-        <div v-for="(photo, index) in photos" :key="index" class="photo-preview">
-          <img :src="photo" class="img-thumbnail" />
-          <button @click="removePhoto(index)" class="btn btn-danger btn-sm">
-            <i class="fas fa-times"></i>
-          </button>
+        <div class="file-previews-container">
+          <div v-for="(photo, index) in photos" :key="index" class="photo-preview">
+            <img :src="photo" class="img-thumbnail" />
+            <button @click="removePhoto(index)" class="btn btn-danger btn-sm" :disabled="isLoading">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
         </div>
         <button class="btn btn-primary mt-3 w-100" @click="processPhotos" :disabled="!isValid || isLoading">
           <i v-if="isLoading" class="fas fa-spinner fa-spin"></i>
@@ -102,9 +104,12 @@ export default {
       }
       return new Blob([buffer], { type: mimeString });
     },
-    toggleCamera() {
+    async toggleCamera() {
       this.facingMode = this.facingMode === 'user' ? 'environment' : 'user';
-      this.initCamera();
+      const stream = this.$refs.video.srcObject;
+      const tracks = stream.getTracks();
+      tracks.forEach(track => track.stop());
+      await this.initCamera();
     },
   },
 };
@@ -157,9 +162,19 @@ export default {
 .switch-button i {
   font-size: 15px;
 }
+
+.file-previews-container {
+  max-height: 200px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  justify-content: space-evenly;
+  margin-top: 10px;
+  overflow: scroll;
+}
 .photo-preview {
   position: relative;
-  margin-top: 10px;
+  width: 45%;
 }
 .img-thumbnail {
   width: 100%;
@@ -167,8 +182,8 @@ export default {
 }
 .btn-danger {
   position: absolute;
-  top: 5px;
-  right: 5px;
+  top: -5px;
+  right: -2px;
   background-color: transparent;
   border: none;
   font-size: 16px;
