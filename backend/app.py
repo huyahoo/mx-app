@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
+# from flask_caching import Cache
 from werkzeug.utils import secure_filename
 from config import Config
 import os
@@ -10,7 +11,10 @@ from mini_dust3r.api import OptimizedResult, inferece_dust3r
 from mini_dust3r.model import AsymmetricCroCo3DStereo
 
 app = Flask(__name__, static_folder='../frontend/dist', static_url_path='')
-CORS(app)
+# cache = Cache(config={'CACHE_TYPE': 'simple'})
+# cache.init_app(app)
+# cors = CORS(app, resources={r"/api/*": {"origins": "https://9fe2-161-3-57-176.ngrok-free.app", "supports_credentials": True}})
+cors = CORS(app)
 
 s3_client = Config.create_s3_client()
 
@@ -31,12 +35,27 @@ def get_presign_url(filename):
         return response
     except Exception as e:
         return str(e), 500
+    
+# @app.after_request
+# def after_request(response):
+#     response.headers.add('Access-Control-Allow-Origin', 'https://9fe2-161-3-57-176.ngrok-free.app')
+#     response.headers.add('Access-Control-Allow-Credentials', 'true')
+#     response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+#     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+#     return response
+
+@app.before_request
+def before_request_func():
+    if request.method == 'OPTIONS':
+        return '', 200
 
 @app.route('/api/', methods=['GET'])
+# @cache.cached(timeout=60)
 def index():
     return jsonify({'message': 'Hello, World!'})
 
 @app.route('/api/healthcheck', methods=['GET'])
+# @cache.cached(timeout=60)
 def health_check():
     return jsonify({'message': 'OK!'})
 
@@ -153,4 +172,5 @@ def upload_files():
     return jsonify({'message': 'OK'}), 200
 
 if __name__ == '__main__':
+    # app.run(host='0.0.0.0', port=5000, ssl_context=('../server/cert.pem', '../server/mx-app-paris-mbp.pem'))
     app.run(host='0.0.0.0', port=5000)

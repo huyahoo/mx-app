@@ -26,3 +26,5 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 }
+
+sudo ln -s /usr/local/etc/nginx/sites-available/mx-app /usr/local/etc/nginx/sites-enabled/

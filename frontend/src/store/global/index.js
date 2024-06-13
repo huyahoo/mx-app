@@ -9,7 +9,8 @@ export default {
     formData: {
       objectName: '',
       saveDestination: process.env.S3_BUCKET_NAME,
-      model: 'Dust3r'
+      model: 'Dust3r',
+      removeBackground: false,
     },
   },
   getters: {

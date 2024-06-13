@@ -16,7 +16,12 @@ export default defineConfig({
   define: {
     'process.env': process.env
   },
-  server: {
-    host: '0.0.0.0'
-  }
+  // server: {
+  //   host: '0.0.0.0'
+  // },
+  devServer: {
+    https: true,
+    key: '../server/key.pem',
+    cert: '../server/cert.pem',
+  },
 })

@@ -100,8 +100,18 @@ export default {
 
         const objectName = this.$store.state.global.formData.objectName;
         formData.append("objectName", objectName);
+        
+        axios.post(`${process.env.RAZI_API_URL}/upload`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            "ngrok-skip-browser-warning": true
+          }
+        })
+        
+        await axios.post(`${process.env.VITE_API_URL}/upload`, formData, { headers: {
+            "ngrok-skip-browser-warning": true
+          } });
 
-        await axios.post(`${process.env.VITE_API_URL}/upload`, formData);
         console.log("Uploaded files");
         this.$router.push("/model-view");
       } catch (error) {

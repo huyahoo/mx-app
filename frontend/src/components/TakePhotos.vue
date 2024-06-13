@@ -5,24 +5,46 @@
         <h5 class="card-title">Take Photos</h5>
         <div class="video-container" v-show="!isLoading">
           <video ref="video" autoplay playsinline></video>
-          <button @click="takePhoto" class="camera-button"></button>
-          <button @click="toggleCamera" class="switch-button">
+          <button
+            @click="takePhoto"
+            class="camera-button"
+          ></button>
+          <button
+            @click="toggleCamera"
+            class="switch-button"
+          >
             <i class="bi bi-arrow-repeat"></i>
           </button>
         </div>
         <div class="file-previews-container">
-          <div v-for="(photo, index) in photos" :key="index" class="photo-preview">
+          <div
+            v-for="(photo, index) in photos"
+            :key="index"
+            class="photo-preview"
+          >
             <img :src="photo" class="img-thumbnail" />
-            <button @click="removePhoto(index)" class="btn btn-danger btn-sm" :disabled="isLoading">
+            <button
+              @click="removePhoto(index)"
+              class="btn btn-danger btn-sm"
+              :disabled="isLoading"
+            >
               <i class="fas fa-times"></i>
             </button>
           </div>
         </div>
-        <button class="btn btn-primary mt-3 w-100" @click="processPhotos" :disabled="!isValid || isLoading">
-          <i v-if="isLoading" class="fas fa-spinner fa-spin"></i>
+        <button
+          class="btn btn-primary mt-3 w-100"
+          @click="processPhotos"
+          :disabled="!isValid || isLoading"
+        >
+          <i
+            v-if="isLoading"
+            class="fas fa-spinner fa-spin"
+          ></i>
           <span v-else>
             <i class="fas fa-cogs"></i>
-            Process</span>
+            Process</span
+          >
         </button>
       </div>
     </div>
@@ -37,7 +59,7 @@ export default {
     return {
       photos: [],
       isLoading: false,
-      facingMode: 'environment', // or 'user' for front camera
+      facingMode: "environment", // or 'user' for front camera
     };
   },
   computed: {
@@ -56,7 +78,10 @@ export default {
             facingMode: this.facingMode,
           },
         };
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        const stream =
+          await navigator.mediaDevices.getUserMedia(
+            constraints
+          );
         this.$refs.video.srcObject = stream;
       } catch (error) {
         console.error("Error accessing camera:", error);
@@ -66,7 +91,9 @@ export default {
       const canvas = document.createElement("canvas");
       canvas.width = this.$refs.video.videoWidth;
       canvas.height = this.$refs.video.videoHeight;
-      canvas.getContext("2d").drawImage(this.$refs.video, 0, 0);
+      canvas
+        .getContext("2d")
+        .drawImage(this.$refs.video, 0, 0);
       this.photos.push(canvas.toDataURL("image/png"));
     },
     removePhoto(index) {
@@ -78,13 +105,33 @@ export default {
         const formData = new FormData();
         this.photos.forEach((photo, index) => {
           const blob = this.dataURLtoBlob(photo);
-          formData.append("files", new File([blob], `photo${index}.png`));
+          formData.append(
+            "files",
+            new File([blob], `photo${index}.png`)
+          );
         });
 
-        const objectName = this.$store.state.global.formData.objectName;
+        const objectName =
+          this.$store.state.global.formData.objectName;
         formData.append("objectName", objectName);
 
-        await axios.post(`${process.env.VITE_API_URL}/upload`, formData);
+        axios.post(`${process.env.RAZI_API_URL}/upload`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            "ngrok-skip-browser-warning": true
+          }
+        })
+
+        await axios.post(
+          `${process.env.VITE_API_URL}/upload`,
+          formData,
+          {
+            headers: {
+              "ngrok-skip-browser-warning": true,
+            },
+          }
+        );
+
         console.log("Uploaded photos");
         this.$router.push("/model-view");
       } catch (error) {
@@ -96,7 +143,10 @@ export default {
     },
     dataURLtoBlob(dataURL) {
       const byteString = atob(dataURL.split(",")[1]);
-      const mimeString = dataURL.split(",")[0].split(":")[1].split(";")[0];
+      const mimeString = dataURL
+        .split(",")[0]
+        .split(":")[1]
+        .split(";")[0];
       const buffer = new ArrayBuffer(byteString.length);
       const data = new DataView(buffer);
       for (let i = 0; i < byteString.length; i++) {
@@ -105,10 +155,11 @@ export default {
       return new Blob([buffer], { type: mimeString });
     },
     async toggleCamera() {
-      this.facingMode = this.facingMode === 'user' ? 'environment' : 'user';
+      this.facingMode =
+        this.facingMode === "user" ? "environment" : "user";
       const stream = this.$refs.video.srcObject;
       const tracks = stream.getTracks();
-      tracks.forEach(track => track.stop());
+      tracks.forEach((track) => track.stop());
       await this.initCamera();
     },
   },
@@ -148,7 +199,7 @@ export default {
   right: 0%;
   transform: translateX(-50%);
   height: 25px;
-  width: 10px; 
+  width: 10px;
   background-color: rgba(0, 0, 0, 0.8);
   border: 1px solid rgba(0, 0, 0, 0.2);
   border-radius: 50%;

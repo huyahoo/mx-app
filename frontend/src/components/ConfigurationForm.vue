@@ -21,6 +21,10 @@
               <!-- Add more options as needed -->
             </select>
           </div>
+          <div class="mb-3 label__input d-flex justify-content-between">
+            <label for="model" class="form-label">Remove Background</label>
+            <input type="checkbox" class="form-check-input" id="removeBackground" v-model="formData.removeBackground">
+          </div>
           <button type="submit" class="btn btn-primary w-100" :disabled="isFormInvalid">Next</button>
         </form>
       </div>
@@ -29,6 +33,8 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   computed: {
     formData () {
@@ -36,12 +42,20 @@ export default {
     },
     isFormInvalid() {
       return !this.formData.objectName || !this.formData.saveDestination || !this.formData.model;
+    },
+    endpoint() {
+      return this.formData.removeBackground ? 'enablebgremoval' : 'disablebgremoval';
     }
   },
   methods: {
     handleSubmit() {
-      // Handle form submission and navigation
       console.log(this.formData);
+
+      axios.post(`${process.env.RAZI_API_URL}/${this.endpoint}`, {
+        header: {
+          "ngrok-skip-browser-warning": true,
+        },
+      })
       this.$router.push('/upload-options');
     }
   }
